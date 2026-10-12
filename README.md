@@ -27,7 +27,7 @@ Known side effect: inside the sandbox, commands that need `.env` (e.g. `npm run 
 Supported: Linux, WSL2 and macOS. Native Windows is not supported (no sandbox), so use WSL2.
 
 ```sh
-cd agent-restrictions
+cd claude-restrictions
 ./install.sh
 ```
 
