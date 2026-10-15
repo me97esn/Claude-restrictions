@@ -2,7 +2,7 @@
 
 Shared Claude Code settings for the team. They stop Claude from:
 
-- reading `.env` files
+- reading `.env` files (`.env.in` templates are still allowed)
 - reading browser profiles (session cookies for Canvas, Azure Portal, etc.)
 - reading CLI credentials (`~/.azure`, `~/.ssh`, `~/.kube`)
 - force pushing
@@ -64,6 +64,7 @@ The generated managed settings (Linux version) look like this:
     "deny": [
       "Read(**/.env)",
       "Read(**/.env.*)",
+      "Read(!**/.env.in)",
       "Read(~/.azure/**)",
       "Read(~/.ssh/**)",
       "Read(~/.kube/**)",
@@ -101,7 +102,8 @@ The generated managed settings (Linux version) look like this:
         "~/.config/google-chrome",
         "~/.config/chromium",
         "~/.config/microsoft-edge"
-      ]
+      ],
+      "allowRead": ["~/**/.env.in"]
     }
   }
 }

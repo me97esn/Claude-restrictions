@@ -98,7 +98,7 @@ settings=$(jq -n --args '
   {
     permissions: {
       deny: (
-        ["Read(**/.env)", "Read(**/.env.*)"]
+        ["Read(**/.env)", "Read(**/.env.*)", "Read(!**/.env.in)"]
         + ($dirs | map("Read(\(.)/**)"))
         + ["Bash(git push --force:*)", "Bash(git push -f:*)", "Bash(git push --force-with-lease:*)"]
       )
@@ -113,7 +113,8 @@ settings=$(jq -n --args '
       failIfUnavailable: true,
       allowUnsandboxedCommands: false,
       filesystem: {
-        denyRead: (["~/**/.env", "~/**/.env.*"] + $dirs)
+        denyRead: (["~/**/.env", "~/**/.env.*"] + $dirs),
+        allowRead: ["~/**/.env.in"]
       }
     }
   }' "${protected_dirs[@]}")
@@ -156,6 +157,10 @@ check 2 'cat .env'
 check 2 'git push --force origin main'
 check 2 'git push origin +main'
 check 0 'cat .env.example'
+check 0 'cat .env.in'
+check 2 'cat .env.internal'
+check 2 'cat .env.in.local'
+check 2 'cat .env.in .env'
 check 0 'git push origin main'
 check 0 'ls -la'
 (( fail )) && die "Hook self-test failed"

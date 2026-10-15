@@ -12,8 +12,9 @@ fi
 
 cmd=$(jq -r '.tool_input.command // empty')
 
-# Ignore harmless template files
-stripped=$(printf '%s' "$cmd" | sed -E 's/\.env\.(example|sample|template)//g')
+# Ignore harmless template files. The name must end there, so e.g.
+# .env.internal or .env.in.local are still blocked.
+stripped=$(printf '%s' "$cmd" | sed -E 's/\.env\.(example|sample|template|in)([^[:alnum:]_.-]|$)/\2/g')
 
 if printf '%s' "$stripped" | grep -qE '(^|[^[:alnum:]_])\.env([^[:alnum:]_]|$)'; then
   echo "Blocked: accessing .env files is not allowed by team policy." >&2
