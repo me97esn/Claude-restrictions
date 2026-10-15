@@ -63,8 +63,16 @@ The generated managed settings (Linux version) look like this:
   "permissions": {
     "deny": [
       "Read(**/.env)",
-      "Read(**/.env.*)",
-      "Read(!**/.env.in)",
+      "Read(**/.env.[#-@A-H]*)",
+      "Read(**/.env.[J-Z]*)",
+      "Read(**/.env.[_a-h]*)",
+      "Read(**/.env.[j-z{-~]*)",
+      "Read(**/.env.[iI])",
+      "Read(**/.env.[iI][#-@A-M]*)",
+      "Read(**/.env.[iI][O-Z]*)",
+      "Read(**/.env.[iI][_a-m]*)",
+      "Read(**/.env.[iI][o-z{-~]*)",
+      "Read(**/.env.[iI][nN]?*)",
       "Read(~/.azure/**)",
       "Read(~/.ssh/**)",
       "Read(~/.kube/**)",
@@ -94,7 +102,16 @@ The generated managed settings (Linux version) look like this:
     "filesystem": {
       "denyRead": [
         "~/**/.env",
-        "~/**/.env.*",
+        "~/**/.env.[#-@A-H]*",
+        "~/**/.env.[J-Z]*",
+        "~/**/.env.[_a-h]*",
+        "~/**/.env.[j-z{-~]*",
+        "~/**/.env.[iI]",
+        "~/**/.env.[iI][#-@A-M]*",
+        "~/**/.env.[iI][O-Z]*",
+        "~/**/.env.[iI][_a-m]*",
+        "~/**/.env.[iI][o-z{-~]*",
+        "~/**/.env.[iI][nN]?*",
         "~/.azure",
         "~/.ssh",
         "~/.kube",
@@ -102,12 +119,13 @@ The generated managed settings (Linux version) look like this:
         "~/.config/google-chrome",
         "~/.config/chromium",
         "~/.config/microsoft-edge"
-      ],
-      "allowRead": ["~/**/.env.in"]
+      ]
     }
   }
 }
 ```
+
+The `.env.[...]` patterns block every `.env.*` file except the `.env.in` template. A plain `.env.*` deny can't be given an exception: in the sandbox a wildcard deny wins over `allowRead`, and `Read(...)` deny rules are copied into the sandbox, where a `!` negation rule has no effect. The comment above `env_files` in `install.sh` explains how the ranges are split.
 
 On macOS, the browser paths are instead `~/Library/Application Support/{Firefox,Google/Chrome,Microsoft Edge}` and `~/Library/Cookies`.
 

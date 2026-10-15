@@ -91,14 +91,32 @@ else
   )
 fi
 
+# .env files Claude must never read: .env and every .env.* except the
+# .env.in template. A wildcard .env.* deny can't be given an exception: the
+# sandbox lets it win over allowRead, and Read rules are copied into the
+# sandbox, where a "!" rule has no effect. So these patterns cover every name
+# after ".env." except "in" instead.
+# Rules for the tested patterns:
+#   - Read rules match case-insensitively, so exclude both i/I and n/N.
+#   - The macOS sandbox mishandles ranges that span upper- and lowercase
+#     letters (e.g. [O-m] matches "n"), so keep each range in one group.
+env_files=(
+  ".env"
+  ".env.[#-@A-H]*" ".env.[J-Z]*" ".env.[_a-h]*" ".env.[j-z{-~]*"
+  ".env.[iI]"
+  ".env.[iI][#-@A-M]*" ".env.[iI][O-Z]*" ".env.[iI][_a-m]*" ".env.[iI][o-z{-~]*"
+  ".env.[iI][nN]?*"
+)
+env_json=$(printf '%s\n' "${env_files[@]}" | jq -R . | jq -s .)
+
 # --- Build managed settings --------------------------------------------------
 
-settings=$(jq -n --args '
+settings=$(jq -n --argjson env "$env_json" --args '
   ($ARGS.positional) as $dirs |
   {
     permissions: {
       deny: (
-        ["Read(**/.env)", "Read(**/.env.*)", "Read(!**/.env.in)"]
+        ($env | map("Read(**/\(.))"))
         + ($dirs | map("Read(\(.)/**)"))
         + ["Bash(git push --force:*)", "Bash(git push -f:*)", "Bash(git push --force-with-lease:*)"]
       )
@@ -113,8 +131,7 @@ settings=$(jq -n --args '
       failIfUnavailable: true,
       allowUnsandboxedCommands: false,
       filesystem: {
-        denyRead: (["~/**/.env", "~/**/.env.*"] + $dirs),
-        allowRead: ["~/**/.env.in"]
+        denyRead: (($env | map("~/**/\(.)")) + $dirs)
       }
     }
   }' "${protected_dirs[@]}")
